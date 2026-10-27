@@ -1,6 +1,6 @@
-data: mmm_example.csv
+data: mmm_example.csv  
 source: https://raw.githubusercontent.com/pymc-labs/pymc-marketing/main/data/mmm_example.csv
-
+  
 Date columns: `date_week` and `dayofyear`
 Sales column: `y`
 Channel media spend columns: `x1` and `x2`

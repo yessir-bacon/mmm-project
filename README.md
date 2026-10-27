@@ -1,6 +1,12 @@
 data: mmm_example.csv
 source: https://raw.githubusercontent.com/pymc-labs/pymc-marketing/main/data/mmm_example.csv
 
+Date columns: `date_week` and `dayofyear`
+Sales column: `y`
+Channel media spend columns: `x1` and `x2`
+Event columns: `event_1` and `event_2`
+Linear trend column: `t`
+
 Shape: (179, 8)
 
 Columns and types:

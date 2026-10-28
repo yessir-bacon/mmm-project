@@ -80,5 +80,35 @@ The script prints the split dates and MAE values and writes
 `data/processed/baseline_holdout.html`. The result is a predictive
 baseline, not a causal estimate: spend may be correlated with omitted factors,
 and the model assumes contemporaneous channel spend and event indicators are
-known at prediction time. `dayofyear` is omitted because the example contains
-only part of a year, so annual seasonality cannot be reliably learned.
+known at prediction time.
+
+## MMM model (Phase 5)
+
+The MMM uses PyMC-Marketing with `x1` and `x2` as channels, geometric adstock
+with an eight-week maximum lag, logistic saturation, two yearly Fourier modes,
+and `event_1`, `event_2`, and a scaled `t` trend as controls. The date range is
+about 3.4 years, so the seasonal terms have multiple annual cycles to learn
+from, although the dataset remains short for stable channel attribution.
+Controls are not automatically scaled by PyMC-Marketing; `t` is transformed
+to a 0–1 range before fitting. The package applies adstock and saturation to
+media and supports posterior prediction on unseen data, including carry-in from
+the final training observations.
+
+Run the model from the project root after Phase 3 preparation:
+
+```powershell
+python src/mmm_project/model.py
+```
+
+The default run uses two MCMC chains with 1,000 warmup and 1,000 posterior
+draws per chain and a fixed random seed. It fits only the first 143 weeks, then
+compares MMM and Phase 4 linear-regression MAE on the same final 36 weeks. It
+writes local, git-ignored artifacts to `data/processed/`: holdout predictions
+with 90% posterior predictive intervals, a comparison chart, model diagnostics,
+channel contribution summaries, and a metrics JSON file. The model is refitted
+when the script runs; its inference data is not serialized.
+Review `r_hat` (values near 1 are preferred), effective sample sizes, and any
+sampler divergences before interpreting channel estimates. The channel
+contributions are posterior counterfactual summaries from the fitted model,
+not experimental causal effects. Correlated spend, omitted drivers, and short
+coverage can make channel-level estimates unstable.

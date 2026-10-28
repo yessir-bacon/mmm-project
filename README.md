@@ -58,3 +58,27 @@ dtype: object
 | **50%** | 5163.385726 | 0.274762 | 0.000000 | 0.000000 | 0.000000 | 181.000000 | 89.000000 |
 | **75%** | 5941.275944 | 0.397176 | 0.000000 | 0.000000 | 0.000000 | 262.500000 | 133.500000 |
 | **max** | 8312.407544 | 0.996658 | 0.994374 | 1.000000 | 1.000000 | 365.000000 | 178.000000 |
+
+## Baseline model (Phase 4)
+
+The baseline evaluation uses an 80/20 chronological split. Rows are sorted by
+`date_week`; the first 143 weeks train an ordinary least squares regression and
+the final 36 weeks are held out. Predictors are `x1`, `x2`, `event_1`,
+`event_2`, and the dataset's linear trend `t`. The model is compared with a
+previous-period benchmark that predicts each week from the prior week's actual
+sales. Both models are scored with mean absolute error (MAE) on the same
+holdout weeks.
+
+Run after preparing the data:
+
+```powershell
+python src/mmm_project/baseline.py
+```
+
+The script prints the split dates and MAE values and writes
+`data/processed/baseline_holdout_predictions.csv` plus an interactive chart at
+`data/processed/baseline_holdout.html`. The result is a predictive
+baseline, not a causal estimate: spend may be correlated with omitted factors,
+and the model assumes contemporaneous channel spend and event indicators are
+known at prediction time. `dayofyear` is omitted because the example contains
+only part of a year, so annual seasonality cannot be reliably learned.

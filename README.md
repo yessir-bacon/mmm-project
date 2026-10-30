@@ -112,3 +112,49 @@ sampler divergences before interpreting channel estimates. The channel
 contributions are posterior counterfactual summaries from the fitted model,
 not experimental causal effects. Correlated spend, omitted drivers, and short
 coverage can make channel-level estimates unstable.
+
+## Budget simulator (Phase 6)
+
+`simulate_budget_scenario()` in `src/mmm_project/scenarios.py` accepts a fitted
+MMM, historical channel data, a future-period context, a total budget, and
+allocations for `x1` and `x2`. The budget and allocations cover the entire
+scenario horizon; the function spreads each channel amount evenly across the
+context weeks. It compares the proposed split with an equal-total baseline that
+uses the historical training-period spend shares. Dates and event/trend
+controls stay fixed across both mixes. Spend amounts use the same units as the
+dataset columns; this example dataset does not document a currency unit.
+
+Example for a 36-week horizon:
+
+```python
+import sys
+import pandas as pd
+
+sys.path.insert(0, "src")
+
+from mmm_project.model import fit_and_evaluate_mmm, prepare_model_data
+from mmm_project.scenarios import simulate_budget_scenario
+
+raw = pd.read_csv("data/processed/mmm_cleaned.csv")
+prepared = prepare_model_data(raw)
+split = int(len(prepared) * 0.8)
+fitted = fit_and_evaluate_mmm(raw)
+
+scenario = simulate_budget_scenario(
+    fitted.model,
+    historical_data=prepared.iloc[:split],
+    context=prepared.iloc[split:],
+    total_budget=18.0,
+    allocations={"x1": 12.0, "x2": 6.0},
+)
+print(scenario.summary)
+print(scenario.warnings)
+```
+
+The result includes weekly posterior predictions and 90% intervals, horizon
+total summaries for each mix, a proposed-minus-baseline estimate, and warnings
+when proposed weekly spend is more than 10% of the observed channel range
+beyond its historical minimum or maximum. Allocations must be finite,
+nonnegative, include exactly `x1` and `x2`, and sum to `total_budget`. The
+simulator produces model-based projections with uncertainty; it does not
+guarantee that changing spend will cause the displayed sales difference.
